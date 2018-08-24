@@ -1,2 +1,2 @@
 # drafts
-Collection of working drafts
+Collection of working drafts documents for discussion
