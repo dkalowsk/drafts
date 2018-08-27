@@ -62,7 +62,7 @@ simplify the search and maintaince of any communication.
 
 The proposed format is:
     ```
-    [[tooling::$tool::$action($content)]]
+    [[tooling::$tool::$action("$content")]]
     ```
 
 
@@ -83,15 +83,15 @@ external tool.
     sections of code when used on a standalone line and defined as the
      `$action`.  Proposed options for `action` are:
     1. `enable` - Informs external tooling to start any and all processing from
-       this point forward.  Example: `[[tooling::clang-format::enable]]`
+       this point forward.  Example: `[[tooling::clang_format::enable]]`
     1. `disable` - Informs external tooling to stop any and all processing from
-       this point forward.  Example: `[[tooling::pvs-studio::disable]]`
+       this point forward.  Example: `[[tooling::pvs_studio::disable]]`
 1. The attribute can be used to mark various names, entities, and
         expression statements that cause an external tool to flag a line.
         Proposed options for `action` line flagging are:
     1. `suppress` - Informs external tooling to disable a specific action(s) on
        the line, based upon a code provided by the external tooling vendor.
-       Example: `[[tooling::clang-tidy::suppress(google-explicit-constructor)]]`
+       Example: `[[tooling::clang-tidy::suppress("google-explicit-constructor")]]`
 1. (UNSURE) The attribute may be applied to the declaration of a class, a
         typedef­name, a variable, a non­static data member, a function, an
         enumeration, a template specialization, or a non­-null expression
@@ -118,8 +118,13 @@ comment initially sounds correct and feasible, the complexity of the C++
 lanaguage parsing points towards a long-term sustainability as being part of the
 language specification.
 
+To work within the current grammar of attributes[2], all external tooling must
+recognize their naming with underscores (_) as a subtitution for hyphenation.
+
+
 ## References
 
 [1] https://github.com/mre/awesome-static-analysis
+[2] http://eel.is/c++draft/dcl.attr#:attribute
 
 ## Revision History 
