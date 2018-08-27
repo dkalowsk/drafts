@@ -121,6 +121,14 @@ language specification.
 To work within the current grammar of attributes[2], all external tooling must
 recognize their naming with underscores (_) as a subtitution for hyphenation.
 
+# Wording
+
+Modify Attribute syntax and semantics [dcl.attr.grammar] as follows
+(underscore means inserted text):
+
+    attribute-namespace:
+        identifier
+        _attribute-namespace :: opt identifier_
 
 ## References
 
