@@ -62,7 +62,7 @@ simplify the search and maintaince of any communication.
 
 The proposed format is:
     ```
-    [[tooling($tool) : $action($content)]]
+    [[tooling::$tool::$action($content)]]
     ```
 
 
@@ -70,41 +70,49 @@ The proposed format is:
 
 The value of `$tool` represents the name of a specific external tool that the
 attribute is directing an action towards.  For example, `$tool` can be
-`cppcheck`, which means any commands afterwards are directed towards the
-cppcheck application.
+`cppcheck` or `coverity`, which means any commands afterwards are directed
+towards the stated application.
 
-The value of the `$action` represents the specific action to take by the
+Alternatively, a `$tool` value of `*` would indicate the following command
+applies to all external tools examining the specific line of code.
+
+The value of `$action` represents the specific behavior to take by the
 external tool.
 
 1. The attribute can be used to alter external tool functionality for
     sections of code when used on a standalone line and defined as the
      `$action`.  Proposed options for `action` are:
-    1. `enable` - Informs external tooling to start all processing from this
-       point forward.  Example: `[[tooling(clang-format) : enable]]`
-    1. `disable` - Informs external tools to stop any and all processing from
-     this point forward.  Example: `[[tooling(coverity) : disable]]`
+    1. `enable` - Informs external tooling to start any and all processing from
+       this point forward.  Example: `[[tooling::clang-format::enable]]`
+    1. `disable` - Informs external tooling to stop any and all processing from
+       this point forward.  Example: `[[tooling::pvs-studio::disable]]`
 1. The attribute can be used to mark various names, entities, and
         expression statements that cause an external tool to flag a line.
-    1. `suppress` - Informs external tooling to disable a specific action on the
-    line, based upon a code provided by the external tooling vendor.  Example:
-    `[[tooling(clang-tidy) : suppress(google-explicit-constructor)]]`
+        Proposed options for `action` line flagging are:
+    1. `suppress` - Informs external tooling to disable a specific action(s) on
+       the line, based upon a code provided by the external tooling vendor.
+       Example: `[[tooling::clang-tidy::suppress(google-explicit-constructor)]]`
 1. (UNSURE) The attribute may be applied to the declaration of a class, a
         typedef­name, a variable, a non­static data member, a function, an
         enumeration, a template specialization, or a non­-null expression
         statement.
+    1. NOTE: While a neat idea to apply external tool control on a per object
+       basis rather than per line basis, it's unclear if current tooling
+       would allow for that level of control.  Therefore it may be best to
+       delay any conversation about such changes until a later date.
 
 
 ### Design Considerations
 
 Currently most external tools use a command mechanism based off of a comment
-block.  With the introduction of attributes in C++, the time is correct to
-introduce a unified way within the language to communicate with external
-tooling.
+C or C++ block.  With the introduction of attributes in C++, the time is
+correct to introduce a unified way within the language to communicate with
+external tooling.
 
-The continued use of a comment format cannot be enforced, and should be thought
-of as ignored by any compiler front-end parser.
+The continued use of a comment block processing format cannot be enforced,
+and should be thought of as ignored by any compiler front-end parser.
 
-The argument can be made that an external tool works on multiple languages, and
+An argument can be made that external tools work on multiple languages, and
 therefore the comment parsing works best.  While maintaining the command in a
 comment initially sounds correct and feasible, the complexity of the C++
 lanaguage parsing points towards a long-term sustainability as being part of the
