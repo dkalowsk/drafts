@@ -133,7 +133,7 @@ Modify Attribute syntax and semantics [dcl.attr.grammar] as follows
 
 ## References
 
-[1] https://github.com/mre/awesome-static-analysis
-[2] http://eel.is/c++draft/dcl.attr#:attribute
+- [1] https://github.com/mre/awesome-static-analysis
+- [2] http://eel.is/c++draft/dcl.attr#:attribute
 
 ## Revision History 
