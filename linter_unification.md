@@ -1,4 +1,4 @@
-# Consolidation of Linter Commands
+# Consolidation of External Tooling Commands
 
 ## Abstract 
 
