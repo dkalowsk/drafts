@@ -38,13 +38,12 @@ possible processing on a line.
 These inline communication mechanisms can become much more detailed, providing
 details towards specific features, functions, or checks to disable. For example,
 within Coverity it is possible to disable the variable dereferencing
-operation with `// coverity[var_deref_op]`
+operation with `// coverity[var_deref_op]` while PVS-Studio uses `//-V522`.
 
 Many software projects will employ multiple versions of these tools, creating a
 precarious situation when updating tools, searching for disabled/supressed lines,
 and even trying to add an external tooling control block.
 
- while PVS-Studio uses `//-V678`.
 
 ## Proposal
 
