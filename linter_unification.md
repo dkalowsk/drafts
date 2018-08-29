@@ -82,16 +82,25 @@ external tool.
     sections of code when used on a standalone line and defined as the
      `$action`.  Proposed options for `action` are:
     1. `enable` - Informs external tooling to start any and all processing from
-       this point forward.  Example: `[[tooling::clang_format::enable]]`
+       this point forward.
+       
+        Example: `[[tooling::clang_format::enable]]`
+
     1. `disable` - Informs external tooling to stop any and all processing from
-       this point forward.  Example: `[[tooling::pvs_studio::disable]]`
-1. The attribute can be used to mark various names, entities, and
-        expression statements that cause an external tool to flag a line.
-        Proposed options for `action` line flagging are:
+       this point forward.
+       
+       Example: `[[tooling::pvs_studio::disable]]`
+
+1. The optional `action` attribute is used to mark various names, entities,
+    and expression statements that cause an external tool to flag a line.
+    Proposed options for `action` attribute are:
+
     1. `suppress` - Informs external tooling to disable a specific action(s) on
        the line, based upon a code provided by the external tooling vendor.
+
        Example: `[[tooling::clang-tidy::suppress("google-explicit-constructor")]]`
-1. (UNSURE) The attribute may be applied to the declaration of a class, a
+
+1. The attribute may be applied to the declaration of a class, a
         typedef­name, a variable, a non­static data member, a function, an
         enumeration, a template specialization, or a non­-null expression
         statement.
