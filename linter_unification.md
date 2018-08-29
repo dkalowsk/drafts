@@ -114,8 +114,10 @@ and should be thought of as ignored by any compiler front-end parser.
 An argument can be made that external tools work on multiple languages, and
 therefore the comment parsing works best.  While maintaining the command in a
 comment initially sounds correct and feasible, the complexity of the C++
-lanaguage parsing points towards a long-term sustainability as being part of the
-language specification.
+language requires the ability to correctly parse the syntax already.  The
+addition of an attribute for external tool control will not present a major
+difficulty for support, while also providing long-term sustainability as
+part of the language specification.
 
 To work within the current grammar of attributes[2], all external tooling must
 recognize their naming with underscores (_) as a subtitution for hyphenation.
