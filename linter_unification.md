@@ -10,11 +10,11 @@ for this communication a developer will be able to clearly search for sections
 of code currently disabling external tooling, remove any possible confusion
 towards the action happening, and finally be assured that the requested action
 will be supported across all compilers (even if the external tooling does not
-in it's current state).
+in tools current state).
 
 This paper uses the term `external tooling` to indicate an application that
 parses C++ source code to walk an Abstract Syntax Tree (AST) to conduct some
-transformation or analysis other than an Immediate Representation.
+transformation or analysis other than an Immediate Representation (IR).
 
 ## Background
 
@@ -68,9 +68,10 @@ while PVS-Studio uses `//-V522`.
 
 ### Compiler-specific Attribute Markers
 
-A portion of tools implement their control mechanisms through compiler specific
-extensions.  For example, OCLint uses GCC's `__attribute__` command to suppress
-an unused local variable warning like:
+Some tools implement their control mechanisms through compiler specific
+extensions.  OCLint uses GCC's `__attribute__` command to suppress
+falsely flagged items.  For example, an unused local variable warning is
+suppressed with:
 
   `__attribute__((annotate("oclint:suppress[unused local variable]")))`
 
@@ -110,7 +111,7 @@ pragma warning as part of their `-Wall` configuration, while Visual Studio
 includes the unknown pragma warning as part of the level 1 warning series.
 
  - clang/gcc : ` warning: unknown pragma ignored [-Wunknown-pragmas]`
- - Visual Studio: `warning C4068: unknown pragma`
+ - Visual Studio : `warning C4068: unknown pragma`
 
 When a project is configured to build with warnings as errors, this pragma will
 now generate a compile error.  This can be solved with the use of another
@@ -127,12 +128,12 @@ example, Bullseye entries can look like:
 ```
 
 
-Ensuring that any and all external tooling is setup properly quickly becomes
-a practice in altering the source code.  In cases where code needs to work
-with multiple compiler, the process can become an exercise in code mangling.
-All this effort moves a developer from worrying about writing clear, clean,
-and concisce code into worrying how undocumented functionality will interact
-with the C++ language.
+In summary, ensuring that any and all external tooling is setup properly will
+always be a practice in massaging the source code.  In cases where code
+needs to work with multiple compilers, the process can become an exercise in
+code mangling.  All this effort moves a developer from worrying about writing
+clear, clean, and concise code into worrying how non-standard undocumented
+functionality will interact with the C++ language and each compiler.
 
 ## Proposal
 
@@ -150,7 +151,7 @@ simplify the search and maintaince of any communication.
 
 The proposed format is:
     ```
-    [[tooling::$tool::$action("$content")]]
+    [[tooling::$tool::$action("$tag")]]
     ```
 
 
@@ -158,8 +159,8 @@ The proposed format is:
 
 The value of `$tool` represents the name of a specific external tool that the
 attribute is directing an action towards.  For example, `$tool` can be
-`cppcheck` or `coverity`, which means any commands afterwards are directed
-towards the stated application.
+`cppcheck` or `coverity`, which directs any commands afterwards are to be
+parsed and acted upon by that specific tool.
 
 Alternatively, a `$tool` value of `*` would indicate the following command
 applies to all external tools examining the specific line of code.
@@ -180,7 +181,11 @@ external tool.
 
        Example: `[[tooling::pvs_studio::disable]]`
 
-1. The optional `action` attribute is used to mark various names, entities,
+    1. Combining the `$action` `enable` or `disable` functionality with the
+       `$tool` value of `*`, creates a mechanism to communicate to all external
+       tooling parsing over a section of code.
+
+1. The optional `$action` attribute is used to mark various names, entities,
     and expression statements that cause an external tool to flag a line.
     Proposed options for `action` attribute are:
 
@@ -201,24 +206,47 @@ external tool.
 
 ### Design Considerations
 
-Currently most external tools use a command mechanism based off of a comment
-C or C++ block.  With the introduction of attributes in C++, the time is
-correct to introduce a unified way within the language to communicate with
-external tooling.
+This paper is not attempting to define what are and what are not valid control
+codes for external tooling.  Instead the focus must be on how the codebase
+communicates the already established control codes to external tooling.
 
-The continued use of a comment block processing format cannot be enforced,
-and should be thought of as ignored by any compiler front-end parser.
+To work within the current grammar of attributes[2], all external tooling must
+recognize their naming with underscores (_) as a substitution for hyphenation.
+For example, `clang-tidy` must be recognized as `clang_tidy`.
+
+Currently a majority of external tools use a command mechanism based off of a
+comment C or C++ block.  This was historically the best way to provide a
+control mechanism that would not impact any compiler, as a comment was ignored
+during the parsing process.  The use of preprocessor macros and compiler
+specific attribute extensions, while functional, creates a convoluted series of
+logic jumps for any human to follow when multiple tools are utilized 
+
+With the introduction of attributes in C++, there exists for a first time, the
+ability to define within the language a mechanism to unify a way to communicate
+with external tooling and still provide proper compiler aware behaviors.
+
+There is some precedent for the use of attributes to control external tooling.
+The CppCoreGuidelines[3] has already established tools that "implement these
+rules shall respect the following syntax to explicitly suppress a rule:
+`[[gsl::suppress(tag)]]`"
+
+Even with the explicit ruling there exist some challenges where different
+compilers do not completely support the same format, resulting in variations to
+accomplish the same behavior with the attribute.  For example:
+- MSVC understands `[[gsl::suppress(tag.x)]]`
+- clang understands `[[gsl::suppress("tag.x")]]`
+
+This problem[4] is highlighted in the Microsoft GSL's gsl_assert.
 
 An argument can be made that external tools work on multiple languages, and
 therefore the comment parsing works best.  While maintaining the command in a
-comment initially sounds correct and feasible, the complexity of the C++
-language requires the ability to correctly parse the syntax already.  The
-addition of an attribute for external tool control will not present a major
-difficulty for support, while also providing long-term sustainability as
-part of the language specification.
+comment initially sounds correct and feasible, recall the complexity of the C++
+language requires the ability to correctly parse the syntax already.  Meaning
+any and all external tooling already has to be ISO C++ standards compliant.
+The addition of an attribute for external tool control will not present a major
+difficulty for support, while also providing long-term sustainability as part
+of the language specification.
 
-To work within the current grammar of attributes[2], all external tooling must
-recognize their naming with underscores (_) as a subtitution for hyphenation.
 
 # Wording
 
@@ -236,5 +264,7 @@ Modify Attribute syntax and semantics [dcl.attr.grammar] as follows
   -  https://github.com/fffaraz/awesome-cpp#static-code-analysis
 
 - [2] http://eel.is/c++draft/dcl.attr#:attribute
+- [3] http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#inforce-enforcement
+- [4] https://github.com/Microsoft/GSL/blob/1995e86d1ad70519465374fb4876c6ef7c9f8c61/include/gsl/gsl_assert#L27
 
 ## Revision History 
