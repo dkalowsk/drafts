@@ -5,12 +5,17 @@
 This paper proposes the addition of the attribute [[tooling]] to add a unified
 language mechanism for communicating with external C++ tooling.  This would
 serve as a replacement for the current ad-hoc collection of control mechanisms
-that form around most code-analysis tools.  By providing a uniform mechanism
-for this communication a developer will be able to clearly search for sections
-of code currently disabling external tooling, remove any possible confusion
-towards the action happening, and finally be assured that the requested action
-will be supported across all compilers (even if the external tooling does not
-in tools current state).
+that form around most code-analysis tools.  Providing a uniform mechanism for
+communication will bring the following benefits:
+- the C++ language can clearly define where a tooling control mechanisms can be
+  placed
+- remove any possible confusion towards the action happening for beginners to
+  the language
+- remove any variations based upon compiler selection such that the requested
+  action will be supported across all compilers (even if the external tooling
+  does not in its current state)
+- have the ability to clearly search an entire codebase for sections currently
+  disabling external tooling
 
 This paper uses the term `external tooling` to indicate an application that
 parses C++ source code to walk an Abstract Syntax Tree (AST) to conduct some
