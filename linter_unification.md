@@ -236,8 +236,8 @@ accomplish the same behavior with the attribute.  For example:
 - MSVC understands `[[gsl::suppress(tag.x)]]`
 - clang understands `[[gsl::suppress("tag.x")]]`
 
-This problem[4] is highlighted, among other places, in the Microsoft GSL's
-gsl_assert.
+This problem[4] is highlighted, among other places, in Microsoft's GSL
+gsl_assert file.
 
 An argument can be made that external tools work on multiple languages, and
 therefore the comment parsing works best.  While maintaining the command in a
