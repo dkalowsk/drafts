@@ -1,6 +1,11 @@
+Document number: Dnnnn=yy-nnnn
+Date:            2018-09-19
+Project:         ISO WG21 : SG 15 : Tooling
+Reply-to:        Dan Kalowsky
+
 # Consolidation of External Tooling Commands
 
-## Abstract 
+## Introduction
 
 This paper proposes the addition of the attribute [[tooling]] to add a unified
 language mechanism for communicating with external C++ tooling.  This would
@@ -21,7 +26,7 @@ This paper uses the term `external tooling` to indicate an application that
 parses C++ source code to walk an Abstract Syntax Tree (AST) to conduct some
 transformation or analysis other than an Immediate Representation (IR).
 
-## Background
+## Motivation and Scope 
 
 A vast industry exists around external tooling within the C++ language, with
 many different providers all with the goal of helping to develop error-free
@@ -70,7 +75,6 @@ with varying levels of clarity.  For example, within Coverity it is possible to
 disable the variable dereferencing with `// coverity[var_deref_op]`
 while PVS-Studio uses `//-V522`.
 
-
 ### Compiler-specific Attribute Markers
 
 Some tools implement their control mechanisms through compiler specific
@@ -79,7 +83,6 @@ falsely flagged items.  For example, an unused local variable warning is
 suppressed with:
 
   `__attribute__((annotate("oclint:suppress[unused local variable]")))`
-
 
 ### Preprocessor Macros
 
@@ -132,7 +135,6 @@ example, Bullseye entries can look like:
   }
 ```
 
-
 In summary, ensuring that any and all external tooling is setup properly will
 always be a practice in massaging the source code.  In cases where code
 needs to work with multiple compilers, the process can become an exercise in
@@ -140,7 +142,7 @@ code mangling.  All this effort moves a developer from worrying about writing
 clear, clean, and concise code into worrying how non-standard undocumented
 functionality will interact with the C++ language and each compiler.
 
-## Proposal
+## Impact On the Standard
 
 As of C++17 there are 6 standard attributes in the C++ language.  They are:
   - [[noreturn]]
@@ -152,15 +154,14 @@ As of C++17 there are 6 standard attributes in the C++ language.  They are:
 
 This paper proposes the inclusion of a new attribute to unify the communication
 to external tooling.  This would not only make it easier to remember, but
-simplify the search and maintaince of any communication.
+simplify the search and maintenance of any communication.
 
 The proposed format is:
     ```
     [[tooling::$tool::$action("$tag")]]
     ```
 
-
-### Tooling attribute
+### attribute [[tooling]]
 
 The value of `$tool` represents the name of a specific external tool that the
 attribute is directing an action towards.  For example, `$tool` can be
@@ -209,15 +210,23 @@ external tool.
        delay any conversation about such changes until a later date.
 
 
-### Design Considerations
+## Design Considerations
 
 This paper is not attempting to define what are and what are not valid control
-codes for external tooling.  Instead the focus must be on how the codebase
-communicates the already established control codes to external tooling.
+codes for external tooling.  The focus must be on how the codebase communicates
+the already established control codes to external tooling.
 
-To work within the current grammar of attributes[2], all external tooling must
-recognize their naming with underscores (_) as a substitution for hyphenation.
-For example, `clang-tidy` must be recognized as `clang_tidy`.
+
+For an attribute solution to work universally, there are a few requirements:
+
+- To work within the current grammar of attributes[2], all external tooling
+  must recognize their naming with underscores (_) as a substitution for
+  hyphenation.  For example, `clang-tidy` must be recognized as `clang_tidy`.
+
+- Attribute placement needs to be standardized across compilers.  For example,
+  clang does not (4.x) support attributes on constexpr function return
+  statements, while MSVC (2017) has difficulty with attributes in templates
+  with SFINAE.
 
 Currently a majority of external tools use a command mechanism based off of a
 comment C or C++ block.  This was historically the best way to provide a
@@ -226,12 +235,15 @@ during the parsing process.  The use of preprocessor macros and compiler
 specific attribute extensions, while functional, creates a convoluted series of
 logic jumps for any human to follow when multiple tools are utilized 
 
-With the introduction of attributes in C++, there exists for a first time, the
-ability to define within the language a mechanism to unify a way to communicate
-with external tooling and still provide proper compiler aware behaviors.
+With the introduction of attributes in C++, there exists the ability to define
+within the language a mechanism to unify a way to communicate with external
+tooling and still provide proper compiler aware behaviors.
+
+#### Why a new attribute?  
 
 There is some precedent for the use of attributes to control external tooling.
-The CppCoreGuidelines[3] has already established tools that "implement these
+Some tools already use a compiler specific attribute extension as discussed
+earlier.  The CppCoreGuidelines[3] also establishes tools that "implement these
 rules shall respect the following syntax to explicitly suppress a rule:
 `[[gsl::suppress(tag)]]`"
 
@@ -241,20 +253,16 @@ accomplish the same behavior with the attribute.  For example:
 - MSVC understands `[[gsl::suppress(tag.x)]]`
 - clang understands `[[gsl::suppress("tag.x")]]`
 
-This problem[4] is highlighted, among other places, in Microsoft's GSL
-gsl_assert file.
+A macro based solution to this problem is highlighted throughout Microsoft's
+GSL implementation.  See the gsl_assert[4] file as an example.
 
-An argument can be made that external tools work on multiple languages, and
-therefore the comment parsing works best.  While maintaining the command in a
-comment initially sounds correct and feasible, recall the complexity of the C++
-language requires the ability to correctly parse the syntax already.  Meaning
-any and all external tooling already has to be ISO C++ standards compliant.
-The addition of an attribute for external tool control will not present a major
-difficulty for support, while also providing long-term sustainability as part
-of the language specification.
+Even with this attribute precident, many compilers issue a warning or error
+(depending upon configuration) when encountering an unknown attribute.  The
+inclusion of a standards specific attribute to communicate to external tooling
+would remove conflicts on all flavors of compilers, while still providing the
+same benefits already established by efforts like the CppCoreGuidelines.
 
-
-# Wording
+# Technical Specifications 
 
 Modify Attribute syntax and semantics [dcl.attr.grammar] as follows
 (underscore means inserted text):
@@ -263,7 +271,14 @@ Modify Attribute syntax and semantics [dcl.attr.grammar] as follows
         identifier
         _attribute-namespace :: opt identifier_
 
-## References
+# Acknowledgements
+
+This proposal would not be complete without acknowledging contributions from:
+
+- Dalton Woodard @ Esri
+- Anna Gringauze @ Microsoft
+
+# References
 
 - [1] A sampling of some sites:
   -  https://github.com/mre/awesome-static-analysis
@@ -273,4 +288,5 @@ Modify Attribute syntax and semantics [dcl.attr.grammar] as follows
 - [3] http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#inforce-enforcement
 - [4] https://github.com/Microsoft/GSL/blob/1995e86d1ad70519465374fb4876c6ef7c9f8c61/include/gsl/gsl_assert#L27
 
-## Revision History 
+# Revision History 
+
