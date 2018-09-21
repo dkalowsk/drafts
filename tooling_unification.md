@@ -7,13 +7,21 @@ Reply-to:        Dan Kalowsky
 
 ## Introduction
 
-This paper proposes the addition of the attribute [[tooling]] to add a unified
-language mechanism for communicating with external C++ tooling.  This would
-serve as a replacement for the current ad-hoc collection of control mechanisms
-that form around most code-analysis tools.  Providing a uniform mechanism for
-communication will bring the following benefits:
-- the C++ language can clearly define where a tooling control mechanisms can be
-  placed
+One new attribute [[tooling]] is proposed.  This attribute will serve to
+provide a unified language mechanism for communicating with external C++
+tooling.
+
+## Motivation and Scope 
+
+This proposal uses the term `external tooling` to indicate an application that
+parses C++ source code to walk an Abstract Syntax Tree (AST) to conduct some
+transformation or analysis other than an Immediate Representation (IR).
+
+Currently, there exists an ad-hoc collection of control mechanisms that form
+around most code-analysis tools.  Replacing that ad-hoc nature and providing a
+uniform mechanism for communication will bring the following benefits:
+- a reserved namespace for all external tooling that clearly defines where and
+  what tooling control mechanisms can be placed
 - remove any possible confusion towards the action happening for beginners to
   the language
 - remove any variations based upon compiler selection such that the requested
@@ -21,12 +29,6 @@ communication will bring the following benefits:
   does not in its current state)
 - have the ability to clearly search an entire codebase for sections currently
   disabling external tooling
-
-This paper uses the term `external tooling` to indicate an application that
-parses C++ source code to walk an Abstract Syntax Tree (AST) to conduct some
-transformation or analysis other than an Immediate Representation (IR).
-
-## Motivation and Scope 
 
 A vast industry exists around external tooling within the C++ language, with
 many different providers all with the goal of helping to develop error-free
@@ -144,6 +146,9 @@ functionality will interact with the C++ language and each compiler.
 
 ## Impact On the Standard
 
+This proposal has minimal impact on the current standard as it proposes a new
+attribute which does not change program semantics.
+
 As of C++17 there are 6 standard attributes in the C++ language.  They are:
   - [[noreturn]]
   - [[carries_dependency]]
@@ -152,24 +157,29 @@ As of C++17 there are 6 standard attributes in the C++ language.  They are:
   - [[nodiscard]]
   - [[fallthrough]]
 
-This paper proposes the inclusion of a new attribute to unify the communication
-to external tooling.  This would not only make it easier to remember, but
-simplify the search and maintenance of any communication.
+This paper proposes the creation/reservation of a new attribute to unify the
+communication to external tooling.  By reserving a namespace for external
+tooling, the C++ language will be able to ensure certain actions are taken or
+not taken upon code based upon the attribute declaration.  This will help in
+creating code that is more portable by not requiring every machine to be
+configured exactly the same to build code found online. The use of an attribute
+would simplify the search and maintenance of any tooling communication.
 
 The proposed format is:
     ```
-    [[tooling::$tool::$action("$tag")]]
+    [[tooling::$action("$tooling::$tag")]]
     ```
 
 ### attribute [[tooling]]
+
+The proposed tooling attribute is essentially a namespace for actions that can
+and should be taken by any external tooling processes.  The `$action` is a defined
+subset of behaviors that an external tool must take when encountering the line.
 
 The value of `$tool` represents the name of a specific external tool that the
 attribute is directing an action towards.  For example, `$tool` can be
 `cppcheck` or `coverity`, which directs any commands afterwards are to be
 parsed and acted upon by that specific tool.
-
-Alternatively, a `$tool` value of `*` would indicate the following command
-applies to all external tools examining the specific line of code.
 
 The value of `$action` represents the specific behavior to take by the
 external tool.
@@ -177,19 +187,24 @@ external tool.
 1. The attribute can be used to alter external tool functionality for
     sections of code when used on a standalone line and defined as the
      `$action`.  Proposed options for `action` are:
+
     1. `enable` - Informs external tooling to start any and all processing from
        this point forward.
 
-        Example: `[[tooling::clang_format::enable]]`
+        Example: `[[tooling::enable("clang-format")]]`
+        Example: `[[tooling::enable("clang-format pvs-studio")]]`
 
     1. `disable` - Informs external tooling to stop any and all processing from
        this point forward.
 
-       Example: `[[tooling::pvs_studio::disable]]`
+       Example: `[[tooling::disable("pvs-studio")]]`
+       Example: `[[tooling::disable("pvs-studio clang-tidy")]]`
 
-    1. Combining the `$action` `enable` or `disable` functionality with the
-       `$tool` value of `*`, creates a mechanism to communicate to all external
+    1. Combining the `$action` `enable` or `disable` functionality with an empty 
+       `$tool` value, creates a mechanism to communicate to all external
        tooling parsing over a section of code.
+
+       Example: `[[tooling::disable()]]`
 
 1. The optional `$action` attribute is used to mark various names, entities,
     and expression statements that cause an external tool to flag a line.
@@ -198,12 +213,13 @@ external tool.
     1. `suppress` - Informs external tooling to disable a specific action(s) on
        the line, based upon a code provided by the external tooling vendor.
 
-       Example: `[[tooling::clang-tidy::suppress("google-explicit-constructor")]]`
+       Example: `[[tooling::suppress("clang-tidy::google-explicit-constructor")]]`
+       Example with multiple entries: `[[tooling::suppress("coverity::var_deref_op pvs-studio::-v522")]]`
 
-1. The attribute may be applied to the declaration of a class, a
-        typedef­name, a variable, a non­static data member, a function, an
-        enumeration, a template specialization, or a non­-null expression
-        statement.
+1. The attribute may be applied to the declaration of a class, a typedef­name,
+   a variable, a non­static data member, a function, an enumeration, a template
+   specialization, or a non­-null expression statement.
+
     1. NOTE: While a neat idea to apply external tool control on a per object
        basis rather than per line basis, it's unclear if current tooling
        would allow for that level of control.  Therefore it may be best to
@@ -216,12 +232,11 @@ This paper is not attempting to define what are and what are not valid control
 codes for external tooling.  The focus must be on how the codebase communicates
 the already established control codes to external tooling.
 
-
 For an attribute solution to work universally, there are a few requirements:
 
 - To work within the current grammar of attributes[2], all external tooling
-  must recognize their naming with underscores (_) as a substitution for
-  hyphenation.  For example, `clang-tidy` must be recognized as `clang_tidy`.
+  must parse through the string representation of their name and search for
+  "scoping" to define the operations.
 
 - Attribute placement needs to be standardized across compilers.  For example,
   clang does not (4.x) support attributes on constexpr function return
@@ -264,19 +279,27 @@ same benefits already established by efforts like the CppCoreGuidelines.
 
 # Technical Specifications 
 
-Modify Attribute syntax and semantics [dcl.attr.grammar] as follows
-(underscore means inserted text):
+10.6.N tooling attribute [dcl.attr.tooling]
 
-    attribute-namespace:
-        identifier
-        _attribute-namespace :: opt identifier_
+The attribute-token tooling indicates that a control mechanism on an external
+tool.  It shall appear at most once in each attribute-list and no
+attribute-argument-clause shall be present. The likely attribute is not allowed
+to appear in the same attribute-list as the unlikely attribute.
+
+The attribute may be applied to statements.
+
+[ Example: Implementations are encouraged to optimize for the case where foo()
+returns true in the following code.
+
+if (foo()) [[likely]] {
+  do_something();
+
+}]
 
 # Acknowledgements
 
-This proposal would not be complete without acknowledging contributions from:
-
-- Dalton Woodard @ Esri
-- Anna Gringauze @ Microsoft
+This proposal would not be complete without acknowledging contributions from
+Dalton Woodard, Anna Gringauze, and members of SG15.
 
 # References
 
