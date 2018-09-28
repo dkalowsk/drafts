@@ -1,13 +1,13 @@
 Document number: Dnnnn=yy-nnnn
 Date:            2018-09-19
-Project:         ISO WG21 : SG 15 : Tooling
+Audience:        SG15
 Reply-to:        Dan Kalowsky
 
 # Consolidation of External Tooling Commands
 
 ## Introduction
 
-One new attribute [[tooling]] is proposed.  This attribute will serve to
+A new [[tooling]] attribute is proposed.  This attribute will serve to
 provide a unified language mechanism for communicating with external C++
 tooling.
 
@@ -20,13 +20,15 @@ transformation or analysis other than an Immediate Representation (IR).
 Currently, there exists an ad-hoc collection of control mechanisms that form
 around most code-analysis tools.  Replacing that ad-hoc nature and providing a
 uniform mechanism for communication will bring the following benefits:
-- a reserved namespace for all external tooling that clearly defines where and
-  what tooling control mechanisms can be placed
-- remove any possible confusion towards the action happening for beginners to
+- create a reserved namespace for all external tooling to utilize that clearly
+  defines where tooling control mechanisms can be placed
+- create a reserved namespace for all external tooling to utilize that clearly
+  defines what tooling control mechanisms can be acted upon
+- removal of any variations based upon compiler selection such that the
+  requested action will be supported across all compilers (even if the external
+  tooling does not in its current state)
+- removal of any possible confusion towards the action happening for beginners to
   the language
-- remove any variations based upon compiler selection such that the requested
-  action will be supported across all compilers (even if the external tooling
-  does not in its current state)
 - have the ability to clearly search an entire codebase for sections currently
   disabling external tooling
 
@@ -49,33 +51,45 @@ following:
 There are even community created documents that consolidate lists of tools with
 the goal of helping developers create better code[1].
 
-An external tool provides some level of functionality, with developers needing
-to consider trade-offs of complexity, coverage, and analysis speed.  There
-exists in every external tooling, a custom inline mechanism(s) to disable or
-suppress the flagging of items of interest or false positives.
+An external tool provides some level of functionality, with some trade-offs of
+complexity, coverage, and analysis speed.  There exists in every external
+tooling, a custom mechanism(s) to disable or suppress the flagging of items of
+interest or false positives.  Often that mechanism is inline with the code
+itself.
 
 Many software projects employ multiple versions of these tools, creating a
 precarious situation when updating tools, searching for disabled/suppressed
 lines, and even trying to add an external tooling control block.
 
-There are currently at least three identified mechanisms for control:
+There are currently four identified mechanisms for control:
 - Structured comments
 - Compiler specific attribute markers
 - Preprocessor macros
+- C++ custom attributes
+
+Ensuring that any and all external tooling is setup properly will always be a
+practice in massaging the source code.  In cases where code needs to work with
+multiple compilers, the process can become an exercise in code mangling.  All
+this effort moves a developer from worrying about writing clear, clean, and
+concise code into worrying how non-standard undocumented functionality will
+interact with the C++ language and each compiler.
 
 ### Structured Comments
 
 Most tools provide some form of a structured comment mechanism to conduct
 inline external tooling control.  The comment format is a collection of ad-hoc
 tooling dependent notations placed within a comment block for the code.  For
-example, clang-tidy uses a `// NOLINT` to disable all possible processing on a
-line.
+example:
 
-These inline communication mechanisms can become much more complicated,
-providing details towards specific features, functions, or checks to disable
-with varying levels of clarity.  For example, within Coverity it is possible to
-disable the variable dereferencing with `// coverity[var_deref_op]`
-while PVS-Studio uses `//-V522`.
+- clang-tidy disables all checks with `// NOLINT`
+
+These inline communication mechanisms can become more complicated, by providing
+details towards specific features, functions, or checks to disable with varying
+levels of clarity.  For example:
+
+- Coverity disables variable dereferencing with `// coverity[var_deref_op]`
+- PVS-Studio disables variable dereferencing with `//-V522`
+- clang-tidy uses `// NOLINT(readability-identifier-naming)`
 
 ### Compiler-specific Attribute Markers
 
@@ -94,13 +108,20 @@ code from analysis in PVS-Studio a developer would do the following:
 
 ```cpp
   #if !defined(PVS_STUDIO)
-
   // Some longer code section here
   // that is to be ignored by external
   // tooling.
-
   #endif // !defined(PVS_STUDIO)
+```
 
+Or for example in Coverity, the following disables all scans on code:
+
+```cpp
+#if !defined(__COVERITY__)
+  // Some longer code section here
+  // that is to be ignored by external
+  // tooling.
+#endif // !defined(__COVERITY)
 ```
 
 Other tools utilize preprocessor macros a little differently.  For example, to
@@ -114,35 +135,13 @@ operative like so:
   }
 ```
 
-The use of the `pragma` operator introduces other challenges.  A compiler
-configured to issue warnings on unknown pragmas will now encounter the external
-tooling line and throw a warning.  Both GCC and clang include the unknown
-pragma warning as part of their `-Wall` configuration, while Visual Studio
-includes the unknown pragma warning as part of the level 1 warning series.
+### C++ Attributes
 
- - clang/gcc : ` warning: unknown pragma ignored [-Wunknown-pragmas]`
- - Visual Studio : `warning C4068: unknown pragma`
+Some tools already use a compiler specific attribute extension as discussed
+earlier.  The CppCoreGuidelines[3] also establishes tools that "implement these
+rules shall respect the following syntax to explicitly suppress a rule:
+`[[gsl::suppress(tag)]]`"
 
-When a project is configured to build with warnings as errors, this pragma will
-now generate a compile error.  This can be solved with the use of another
-preprocessor definition to obscure the line from other external tools.  For
-example, Bullseye entries can look like:
-
-```cpp
-#if _BullseyeCoverage
-  #pragma BullseyeCoverage ignore
-#endif
-  if (p != nullptr) {
-    // do something interesting
-  }
-```
-
-In summary, ensuring that any and all external tooling is setup properly will
-always be a practice in massaging the source code.  In cases where code
-needs to work with multiple compilers, the process can become an exercise in
-code mangling.  All this effort moves a developer from worrying about writing
-clear, clean, and concise code into worrying how non-standard undocumented
-functionality will interact with the C++ language and each compiler.
 
 ## Impact On the Standard
 
@@ -229,8 +228,8 @@ external tool.
 ## Design Considerations
 
 This paper is not attempting to define what are and what are not valid control
-codes for external tooling.  The focus must be on how the codebase communicates
-the already established control codes to external tooling.
+codes for external tooling.  The focus must be on how to communicate with the
+already established control codes to external tooling.
 
 For an attribute solution to work universally, there are a few requirements:
 
@@ -243,18 +242,45 @@ For an attribute solution to work universally, there are a few requirements:
   statements, while MSVC (2017) has difficulty with attributes in templates
   with SFINAE.
 
-Currently a majority of external tools use a command mechanism based off of a
-comment C or C++ block.  This was historically the best way to provide a
-control mechanism that would not impact any compiler, as a comment was ignored
-during the parsing process.  The use of preprocessor macros and compiler
-specific attribute extensions, while functional, creates a convoluted series of
-logic jumps for any human to follow when multiple tools are utilized 
+#### Why a new attribute?
+
+A majority of external tools use a command mechanism based off of a comment C
+or C++ block.  This was historically a best practice to provide a control
+mechanism that would not impact any compiler, as a comment was ignored during
+the parsing process.
+
+The use of preprocessor macros and compiler specific attribute extensions,
+while functional, unnecessarily increases the complexity of reading the code
+for any human.  When multiple tools are utilized, a series of convoluted logic
+jumps may exists at their intersection, that are easily broken and not realized
+until a much later.
+
+The use of the `pragma` operators introduces other challenges.  A compiler
+configured to issue warnings on unknown pragmas will now encounter the external
+tooling line and throw a warning.  Both GCC and clang include the unknown
+pragma warning as part of their `-Wall` configuration, while Visual Studio
+includes the unknown pragma warning as part of the level 1 warning series.
+
+ - clang/gcc : ` warning: unknown pragma ignored [-Wunknown-pragmas]`
+ - Visual Studio : `warning C4068: unknown pragma`
+
+When a project is configured to build with warnings as errors, this pragma will
+now generate a compile error.  This can be solved with the use of another
+preprocessor definition to obscure the line from other external tools.  For
+example, Bullseye entries can look like:
+
+```cpp
+#if _BullseyeCoverage
+  #pragma BullseyeCoverage ignore
+#endif
+  if (p != nullptr) {
+    // do something interesting
+  }
+```
 
 With the introduction of attributes in C++, there exists the ability to define
 within the language a mechanism to unify a way to communicate with external
 tooling and still provide proper compiler aware behaviors.
-
-#### Why a new attribute?  
 
 There is some precedent for the use of attributes to control external tooling.
 Some tools already use a compiler specific attribute extension as discussed
