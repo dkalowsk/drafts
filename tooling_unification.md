@@ -156,24 +156,16 @@ As of C++17 there are 6 standard attributes in the C++ language.  They are:
   - [[nodiscard]]
   - [[fallthrough]]
 
-This paper proposes the creation/reservation of a new attribute to unify the
-communication to external tooling.  By reserving a namespace for external
-tooling, the C++ language will be able to ensure certain actions are taken or
-not taken upon code based upon the attribute declaration.  This will help in
-creating code that is more portable by not requiring every machine to be
-configured exactly the same to build code found online. The use of an attribute
-would simplify the search and maintenance of any tooling communication.
-
 The proposed format is:
-    ```
+    ```cpp
     [[tooling::$action("$tooling::$tag")]]
     ```
 
 ### attribute [[tooling]]
 
-The proposed tooling attribute is essentially a namespace for actions that can
-and should be taken by any external tooling processes.  The `$action` is a defined
-subset of behaviors that an external tool must take when encountering the line.
+The proposed tooling attribute is essentially a namespace for actions directed
+towards any external tooling processes.  The `$action` is a defined subset of
+behaviors that an external tool must take when encountering the line.
 
 The value of `$tool` represents the name of a specific external tool that the
 attribute is directing an action towards.  For example, `$tool` can be
@@ -247,19 +239,23 @@ For an attribute solution to work universally, there are a few requirements:
 A majority of external tools use a command mechanism based off of a comment C
 or C++ block.  This was historically a best practice to provide a control
 mechanism that would not impact any compiler, as a comment was ignored during
-the parsing process.
+the parsing process.  This resulted in code modifications that were unable to
+be validated by a standard compiler.  Further complicating the process, many
+software projects adopted a maximum column width per line of code, forcing the
+introduction of further heuristics to the control mechanisms to indicate a line
+lower or above that the behavior should apply to.
 
 The use of preprocessor macros and compiler specific attribute extensions,
 while functional, unnecessarily increases the complexity of reading the code
 for any human.  When multiple tools are utilized, a series of convoluted logic
 jumps may exists at their intersection, that are easily broken and not realized
-until a much later.
+until much later.
 
 The use of the `pragma` operators introduces other challenges.  A compiler
 configured to issue warnings on unknown pragmas will now encounter the external
-tooling line and throw a warning.  Both GCC and clang include the unknown
-pragma warning as part of their `-Wall` configuration, while Visual Studio
-includes the unknown pragma warning as part of the level 1 warning series.
+tooling line and throw a warning.  The unknown pragma warning is enabled in
+both GCC and clang as part of their `-Wall` configuration, and Visual Studio
+as part of the Level 1 warning series.
 
  - clang/gcc : ` warning: unknown pragma ignored [-Wunknown-pragmas]`
  - Visual Studio : `warning C4068: unknown pragma`
