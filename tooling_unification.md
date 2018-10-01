@@ -296,7 +296,7 @@ same benefits already established by efforts like the CppCoreGuidelines.
 
 # Technical Specifications 
 
-10.6.N tooling attribute [dcl.attr.tooling]
+9.11.N tooling attribute [dcl.attr.tooling]
 
 The attribute-token tooling indicates a control mechanism on an external tool.
 It shall appear at most once in each attribute-list and no
