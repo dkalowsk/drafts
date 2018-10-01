@@ -137,9 +137,9 @@ operative like so:
 
 ### C++ Attributes
 
-Some tools already use a compiler specific attribute extension as discussed
-earlier.  The CppCoreGuidelines[3] also establishes tools that "implement these
-rules shall respect the following syntax to explicitly suppress a rule:
+Some tools already use a compiler specific attribute extension.  The
+CppCoreGuidelines[3] also establishes tools that "implement these rules shall
+respect the following syntax to explicitly suppress a rule:
 `[[gsl::suppress(tag)]]`"
 
 
@@ -236,20 +236,25 @@ For an attribute solution to work universally, there are a few requirements:
 
 #### Why a new attribute?
 
-A majority of external tools use a command mechanism based off of a comment C
-or C++ block.  This was historically a best practice to provide a control
+With the introduction of attributes in C++, there exists the ability to define
+within the language a mechanism to unify a way to communicate with external
+tooling and still provide proper compiler aware behaviors.  There is some
+precedent for the use of attributes to control external tooling.
+
+A majority of external tools use a command mechanism based off of a C or C++
+comment block.  This was historically a best practice to provide a control
 mechanism that would not impact any compiler, as a comment was ignored during
-the parsing process.  This resulted in code modifications that were unable to
-be validated by a standard compiler.  Further complicating the process, many
-software projects adopted a maximum column width per line of code, forcing the
+the parsing process.  This results in code modifications that unable to be
+validated by a standard compiler.  Further complicating the process, many
+software projects adopt a maximum column width per line of code, forcing the
 introduction of further heuristics to the control mechanisms to indicate a line
 lower or above that the behavior should apply to.
 
 The use of preprocessor macros and compiler specific attribute extensions,
-while functional, unnecessarily increases the complexity of reading the code
-for any human.  When multiple tools are utilized, a series of convoluted logic
-jumps may exists at their intersection, that are easily broken and not realized
-until much later.
+unnecessarily increases the complexity of reading the code for any human.  When
+multiple tools are utilized, a series of convoluted logic jumps may exist at
+the tooling intersections, that is easily broken and not realized until much
+later.
 
 The use of the `pragma` operators introduces other challenges.  A compiler
 configured to issue warnings on unknown pragmas will now encounter the external
@@ -274,19 +279,9 @@ example, Bullseye entries can look like:
   }
 ```
 
-With the introduction of attributes in C++, there exists the ability to define
-within the language a mechanism to unify a way to communicate with external
-tooling and still provide proper compiler aware behaviors.
-
-There is some precedent for the use of attributes to control external tooling.
-Some tools already use a compiler specific attribute extension as discussed
-earlier.  The CppCoreGuidelines[3] also establishes tools that "implement these
-rules shall respect the following syntax to explicitly suppress a rule:
-`[[gsl::suppress(tag)]]`"
-
-Even with the explicit ruling there exist some challenges where different
-compilers do not completely support the same format, resulting in variations to
-accomplish the same behavior with the attribute.  For example:
+Even with the explicit attribute based ruling there exist some challenges where
+different compilers do not completely support the same format, resulting in
+variations to accomplish the same behavior with the attribute.  For example:
 - MSVC understands `[[gsl::suppress(tag.x)]]`
 - clang understands `[[gsl::suppress("tag.x")]]`
 
@@ -303,25 +298,37 @@ same benefits already established by efforts like the CppCoreGuidelines.
 
 10.6.N tooling attribute [dcl.attr.tooling]
 
-The attribute-token tooling indicates that a control mechanism on an external
-tool.  It shall appear at most once in each attribute-list and no
-attribute-argument-clause shall be present. The likely attribute is not allowed
-to appear in the same attribute-list as the unlikely attribute.
+The attribute-token tooling indicates a control mechanism on an external tool.
+It shall appear at most once in each attribute-list and no
+attribute-argument-clause shall be present.
 
-The attribute may be applied to statements.
+The attribute may be applied to all statements and empty lines.
 
-[ Example: Implementations are encouraged to optimize for the case where foo()
-returns true in the following code.
+Example: Implementation where the return result of a function is explicitly
+ignored:
 
-if (foo()) [[likely]] {
+```cpp
+foo() [[tooling::suppress("clang-tidy::bugprone-unused-return-value")]];
+```
+
+Example: Implementation to suppress a warning on a case of using else
+statements after a return.
+
+```cpp
+if (foo()) {
   do_something();
-
-}]
+  return;
+} else { [[tooling::suppress("clang-tidy::readability-else-after-return")]]
+  do_something_else();
+  return;
+}
+```
 
 # Acknowledgements
 
 This proposal would not be complete without acknowledging contributions from
-Dalton Woodard, Anna Gringauze, and members of SG15.
+Dalton Woodard, Anna Gringauze, and various members of the C++ community who
+helped by answering questions and providing input.
 
 # References
 
