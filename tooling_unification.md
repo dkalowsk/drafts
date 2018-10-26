@@ -1,5 +1,5 @@
-Document number: Dnnnn=yy-nnnn
-Date:            2018-10-19
+Document number: P1325R0
+Date:            2018-10-26
 Audience:        SG15
 Reply-to:        Dan Kalowsky
 
