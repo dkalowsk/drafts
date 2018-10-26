@@ -90,11 +90,18 @@ for (int i = 0; i < N; ++i) // NOLINT
 
 These inline communication mechanisms can become more complicated, by providing
 details towards specific features, functions, or checks to disable with varying
-levels of clarity.  For example:
+levels of clarity.  For example the following line will disable the clang-tidy
+specific check modernize-loop-convert only:
+
+```cpp
+for (int i = 0; i < N; ++i) // NOLINT(modernize-loop-convert)
+  cout << arr[i];
+```
+
+This isn't to say other tools don't have the same behavior.  For examples:
 
 - Coverity disables variable dereferencing with `// coverity[var_deref_op]`
 - PVS-Studio disables variable dereferencing with `//-V522`
-- clang-tidy uses `// NOLINT(readability-identifier-naming)`
 
 
 ### Compiler-specific Attribute Markers
