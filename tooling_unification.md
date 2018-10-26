@@ -98,7 +98,7 @@ for (int i = 0; i < N; ++i) // NOLINT(modernize-loop-convert)
   cout << arr[i];
 ```
 
-This isn't to say other tools don't have the same behavior.  For examples:
+Other external tools also have the similar narrowing behavior.  For examples:
 
 - Coverity disables variable dereferencing with `// coverity[var_deref_op]`
 - PVS-Studio disables variable dereferencing with `//-V522`
