@@ -118,33 +118,22 @@ suppressed by adding
 
 Another portion of tools implement their own preprocessor macro to communicate
 commands and control to their tooling.  For example, to exclude a fragment of
-code from analysis in PVS-Studio a developer would do the following:
+code from analysis with a preprocessor macro a developer would do the following:
 
 ```cpp
-  #if !defined(PVS_STUDIO)
+  #if !defined(EXTERNAL_TOOLING)
   // Some longer code section here
   // that is to be ignored by external
   // tooling.
-  #endif // !defined(PVS_STUDIO)
-```
-
-Or for example in Coverity, the following disables all scans on a section of
-code:
-
-```cpp
-#if !defined(__COVERITY__)
-  // Some longer code section here
-  // that is to be ignored by external
-  // tooling.
-#endif // !defined(__COVERITY)
+  #endif // !defined(EXTERNAL_TOOLING)
 ```
 
 Other tools utilize preprocessor macros a little differently.  For example, to
-exclude a line of code from Bullseye, a developer can use the compiler `pragma`
-operative like so:
+exclude a line of code some tools use `pragma` commands. A developer would setup
+the compiler `pragma` operative like so:
 
  ```cpp
-  #pragma BullseyeCoverage ignore
+  #pragma EXTERNAL_TOOLING_PRAGMA ignore
   if (p != nullptr) {
     // do something interesting
   }
@@ -311,8 +300,8 @@ preprocessor definition to obscure the line from other external tools.  For
 example, Bullseye entries can look like:
 
 ```cpp
-#if defined(EXTERNAL_TOOLING)
-  #pragma EXTERNAL_TOOLING ignore
+#if defined(EXTERNAL_TOOLING_PRAGMA)
+  #pragma EXTERNAL_TOOLING_PRAGMA ignore
 #endif
   if (p != nullptr) {
     // do something interesting
