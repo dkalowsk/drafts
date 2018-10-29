@@ -22,6 +22,7 @@ transformation or analysis other than an Immediate Representation (IR).
 Currently, there exists an ad-hoc collection of control mechanisms that form
 around most code-analysis tools.  Replacing that ad-hoc nature and providing a
 uniform mechanism for communication will bring the following benefits:
+
 - create a reserved namespace for all external tooling to utilize that clearly
   defines where tooling control mechanisms can be placed
 - create a reserved namespace for all external tooling to utilize that clearly
@@ -50,7 +51,7 @@ choices, including (but not limited to) the following:
 - Bullseye (https://www.bullseye.com/)
 
 There are even community created documents that consolidate lists of tools with
-the goal of helping developers create better code[1].
+the goal of helping developers create better code[[1](#samples)].
 
 An external tool provides some level of functionality, with some trade-offs of
 complexity, coverage, and analysis speed.  There exists in every external
@@ -63,6 +64,7 @@ precarious situation when updating tools, searching for disabled/suppressed
 lines, and even trying to add an external tooling control block.
 
 There are currently four identified mechanisms for control:
+
 - Structured comments
 - Compiler specific attribute markers
 - Preprocessor macros
@@ -109,7 +111,7 @@ Other external tools also have the similar narrowing behavior.  For examples:
 Some tools implement their control mechanisms through compiler specific
 extensions.  OCLint uses GCC's `__attribute__` command to suppress
 falsely flagged items.  For example, an unused local variable warning is
-suppressed by adding
+suppressed by adding:
 
   `__attribute__((annotate("oclint:suppress[unused local variable]")))`
 
@@ -143,9 +145,12 @@ the compiler `pragma` operative like so:
 ### C++ Attributes
 
 Some tools have already embraced the use of the C++ attributes.  For example,
-the CppCoreGuidelines[3] also establishes tools that "implement these rules
+the CppCoreGuidelines[[3](#coreguidelines)] also establishes tools that "implement these rules
 shall respect the following syntax to explicitly suppress a rule:
-`[[gsl::suppress(tag)]]`"
+
+```
+[[gsl::suppress(tag)]]
+```
 
 
 ## Impact On the Standard
@@ -154,6 +159,7 @@ This proposal has minimal impact on the current standard as it proposes a new
 attribute which does not change program semantics.
 
 As of C++17 there are 6 standard attributes in the C++ language.  They are:
+
   - [[noreturn]]
   - [[carries_dependency]]
   - [[deprecated]]
@@ -161,10 +167,7 @@ As of C++17 there are 6 standard attributes in the C++ language.  They are:
   - [[nodiscard]]
   - [[fallthrough]]
 
-The proposed format is:
-    ```cpp
-    [[tooling::$action("$tooling::$tag")]]
-    ```
+The proposed format is: `[[tooling::$action("$tooling::$tag")]]`
 
 
 ### attribute [[tooling]]
@@ -188,20 +191,20 @@ external tool.
     1. `enable` - Informs external tooling to start any and all processing from
        this point forward.
 
-        Example: `[[tooling::enable("clang-format")]]`
-        Example: `[[tooling::enable("clang-format pvs-studio")]]`
+       - Example: `[[tooling::enable("clang-format")]]`
+       - Example: `[[tooling::enable("clang-format pvs-studio")]]`
 
     1. `disable` - Informs external tooling to stop any and all processing from
        this point forward.
 
-       Example: `[[tooling::disable("pvs-studio")]]`
-       Example: `[[tooling::disable("pvs-studio clang-tidy")]]`
+       - Example: `[[tooling::disable("pvs-studio")]]`
+       - Example: `[[tooling::disable("pvs-studio clang-tidy")]]`
 
     1. Combining the `$action` `enable` or `disable` functionality with an empty 
        `$tool` value, creates a mechanism to communicate to all ISO C++ compliant
        external tools parsing over a section of code.
 
-       Example: `[[tooling::disable()]]`
+       - Example: `[[tooling::disable()]]`
 
 1. The optional `$action` attribute is used to mark various names, entities,
     and expression statements that cause an external tool to flag a line.
@@ -210,8 +213,8 @@ external tool.
     1. `suppress` - Informs external tooling to disable a specific action(s) on
        the line, based upon a code provided by the external tooling vendor.
 
-       Example: `[[tooling::suppress("clang-tidy::google-explicit-constructor")]]`
-       Example with multiple entries: `[[tooling::suppress("coverity::var_deref_op pvs-studio::-v522")]]`
+       - Example: `[[tooling::suppress("clang-tidy::google-explicit-constructor")]]`
+       - Example with multiple entries: `[[tooling::suppress("coverity::var_deref_op pvs-studio::-v522")]]`
 
 1. The attribute may be applied to the declaration of a class, a typedef­name,
    a variable, a non­static data member, a function, an enumeration, a template
@@ -226,7 +229,7 @@ already established and future control codes to external tooling.
 
 For an attribute solution to work universally, there are a few requirements:
 
-- To work within the current grammar of attributes[2], all external tooling
+- To work within the current grammar of attributes[[2](#eelis)], all external tooling
   must parse through the string representation of their name and search for
   "scoping" to define the operations.
 
@@ -318,7 +321,7 @@ support for the attribute syntax:
 - clang understands `[[gsl::suppress("tag.x")]]`
 
 A macro based solution to this problem is highlighted throughout Microsoft's
-GSL implementation.  See the gsl_assert[4] file as an example.  This solution
+GSL implementation.  See the gsl_assert[[4](#gsl)] file as an example.  This solution
 will only grow more complex as other C++ compilers are supported.
 
 Even with this attribute precident, many compilers issue a warning or error
@@ -383,13 +386,13 @@ helped by answering questions and providing input.
 
 # References
 
-- [1] A sampling of some sites:
-  -  https://github.com/mre/awesome-static-analysis
-  -  https://github.com/fffaraz/awesome-cpp#static-code-analysis
+- [<a name="samples">1</a>] A sampling of some sites:
+  -  [https://github.com/mre/awesome-static-analysis](https://github.com/mre/awesome-static-analysis)
+  -  [https://github.com/fffaraz/awesome-cpp#static-code-analysis](https://github.com/fffaraz/awesome-cpp#static-code-analysis)
 
-- [2] http://eel.is/c++draft/dcl.attr#:attribute
-- [3] http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#inforce-enforcement
-- [4] https://github.com/Microsoft/GSL/blob/1995e86d1ad70519465374fb4876c6ef7c9f8c61/include/gsl/gsl_assert#L27
+- [<a name="eelis">2</a>] [http://eel.is/c++draft/dcl.attr#:attribute](http://eel.is/c++draft/dcl.attr#:attribute)
+- [<a name="coreguidelines">3</a>] [http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#inforce-enforcement](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#inforce-enforcement)
+- [<a name="gsl">4</a>] [https://github.com/Microsoft/GSL/blob/1995e86d1ad70519465374fb4876c6ef7c9f8c61/include/gsl/gsl_assert#L27](https://github.com/Microsoft/GSL/blob/1995e86d1ad70519465374fb4876c6ef7c9f8c61/include/gsl/gsl_assert#L27)
 
 # Revision History 
 
