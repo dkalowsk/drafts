@@ -43,14 +43,14 @@ code.  Taking an incomplete tour via an internet search results in several
 available.  With choices from free to commercial, a developer has plenty of
 choices, including (but not limited to) the following:
 
-- cppcheck (http://cppcheck.sourceforge.net/)
-- clang-tidy (http://clang.llvm.org/extra/clang-tidy/)
-- clang-format (https://clang.llvm.org/docs/ClangFormat.html)
-- Coverity (https://scan.coverity.com/)
-- oclint (http://oclint.org/)
-- Klockwork (http://www.klocwork.com/products-services/klocwork)
-- PVS-Studio (https://www.viva64.com/en/pvs-studio/)
-- Bullseye (https://www.bullseye.com/)
+- cppcheck ([http://cppcheck.sourceforge.net/](http://cppcheck.sourceforge.net/))
+- clang-tidy ([http://clang.llvm.org/extra/clang-tidy/](http://clang.llvm.org/extra/clang-tidy/))
+- clang-format ([https://clang.llvm.org/docs/ClangFormat.html](https://clang.llvm.org/docs/ClangFormat.html))
+- Coverity ([https://scan.coverity.com/](https://scan.coverity.com/))
+- oclint ([http://oclint.org/](http://oclint.org/))
+- Klockwork ([http://www.klocwork.com/products-services/klocwork](http://www.klocwork.com/products-services/klocwork))
+- PVS-Studio ([https://www.viva64.com/en/pvs-studio/](https://www.viva64.com/en/pvs-studio/))
+- Bullseye ([https://www.bullseye.com/](https://www.bullseye.com/))
 
 There are even community created documents that consolidate lists of tools with
 the goal of helping developers create better code[[1](#samples)].
