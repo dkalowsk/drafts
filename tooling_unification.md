@@ -1,9 +1,11 @@
-Document number: P1325R0
-Date:            2018-10-26
-Audience:        SG15
-Reply-to:        Dan Kalowsky
-
 # Consolidation of External Tooling Commands
+
+|                  |              |
+| -                | -            |
+| Document number: | P1325R0      |
+| Date:            | 2018-10-26   |
+| Audience:        | SG15         |
+| Reply-To:        | Dan Kalowsky |
 
 
 ## Introduction
