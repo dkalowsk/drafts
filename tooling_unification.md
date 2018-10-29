@@ -339,11 +339,6 @@ same benefits already established by efforts like the CppCoreGuidelines.
 1) Given earlier statements about some code bases having set a hard requirement
    on line length, should the `$action` list also include a `suppress_last`?
 
-1) While a neat idea to apply external tooling control on a per object basis
-   rather than per line basis, it's unclear if current tooling would allow for
-   that level of control.  Therefore it may be best to delay any conversation
-   about such changes until a later date.
-
 
 # Technical Specifications 
 
